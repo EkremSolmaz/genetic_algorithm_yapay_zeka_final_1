@@ -21,7 +21,7 @@ class DNA(object):
         self.dna.append(random() * 5 - 2.5)    # 1 desire_to_die [-2.5, 2.5]
         self.dna.append(randint(50, 1000))      # 2 food_view_distance [50, 1000]
         self.dna.append(randint(50, 1000))      # 3 obstacle_view_distance [50, 1000]
-        self.dna.append(random() * 2)          # 4 max_force [0, 2]
+        self.dna.append(random() * 1)          # 4 max_force [0, 2]
         self.dna.append(random() * 20)         # 5 max_velocity [0, 20]
 
     def print(self):

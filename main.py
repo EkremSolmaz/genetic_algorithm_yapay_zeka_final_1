@@ -40,11 +40,11 @@ for i in range(obstacle_number):
 r = obstacles[0].gui_size
 x = border_size
 y = win_size - border_size
-for i in range((y - x) // (4 * r)):
-    obstacles.append(Obstacle([x + (4 * i + 2) * r, x - r], win))  # up
-    obstacles.append(Obstacle([x + (4 * i + 2) * r, y + r], win))  # down
-    obstacles.append(Obstacle([x - r, x + (4 * i + 2) * r], win))  # left
-    obstacles.append(Obstacle([y + r, x + (4 * i + 2) * r], win))  # right
+for i in range((y - x) // (3 * r)):
+    obstacles.append(Obstacle([x + (3 * i + 2) * r, x - r], win))  # up
+    obstacles.append(Obstacle([x + (3 * i + 2) * r, y + r], win))  # down
+    obstacles.append(Obstacle([x - r, x + (3 * i + 2) * r], win))  # left
+    obstacles.append(Obstacle([y + r, x + (3 * i + 2) * r], win))  # right
 
 
 # Robot
@@ -52,18 +52,25 @@ robot_number = 10
 robots = []
 map_limits = [border_size, win_size-border_size]
 # r = Robot([400, 400], foods, obstacles, win, map_limits)
+
+alive_robots = 0
 for i in range(robot_number):
     robots.append(Robot([400, 400], foods, obstacles, win, map_limits))
+    alive_robots += 1
 
-while True:
-    sleep(0.03)
+while alive_robots > 0:
+    sleep((len(robots) / alive_robots) * 0.002)  # Slow sim if less robots on
+
+    alive_robots = 0
     for i in range(robot_number):
         robots[i].play()
+        if robots[i].isAlive:
+            alive_robots += 1
 
-    print(len(foods))
     if len(foods) < food_number:
         foods.append(
             Food([randint(border_size, win_size - border_size), randint(border_size, win_size - border_size)], win))
+
 
     # keyName = win.getKey()
     # if keyName == "Return":

@@ -31,6 +31,18 @@ class Robot(object):
         self.dna = DNA()
         self.dna.print()
 
+        self.score = 0
+
+        # Ways to score
+        self.age_score = 1
+        self.food_score = 25
+        self.die_score = -25
+
+        self.time_hungry = 0
+        self.die_from_hunger = 500
+
+        self.food_eaten = 0
+
         self.max_velocity = self.dna.dna[5]
 
         self.create_gui()
@@ -51,13 +63,38 @@ class Robot(object):
             self.gui.setFill(self.gui_dead_color)
         self.gui.draw(self.gui_win)
 
+        self.score_text = Text(Point(self.position[0], self.position[1]), "{}".format(self.score))
+        self.score_text.draw(self.gui_win)
+
     def set_direction(self, new_direction):
         self.direction = new_direction
         self.update_gui()
 
     def update_gui(self):
         self.gui.undraw()
+        self.score_text.undraw()
         self.create_gui()
+
+    def play(self):
+        if self.isAlive:
+            self.score += self.age_score
+            self.time_hungry += 1
+
+            if self.time_hungry > 50:
+                self.score = 0
+            if self.time_hungry > self.die_from_hunger:
+                self.score -= self.die_score
+                self.die()
+
+            steer_eat = self.eat()
+            steer_avoid = self.avoid()
+
+            steer_eat = self.vector_mul(steer_eat, self.dna.dna[0])
+            steer_avoid = self.vector_mul(steer_avoid, self.dna.dna[1])
+
+            self.apply_force(steer_eat)
+            self.apply_force(steer_avoid)
+            self.update()
 
     def update(self):
         self.velocity[0] += self.acceleration[0]
@@ -112,6 +149,10 @@ class Robot(object):
         self.foods[food_idx] = self.foods[-1]
         del self.foods[-1]
 
+        self.score += self.food_score
+        self.time_hungry = 0
+        self.food_eaten += 1
+
     def get_closest_obstacle(self):
         distances = []
 
@@ -132,19 +173,10 @@ class Robot(object):
         return min_idx
 
     def die(self):
+        self.score += self.die_score
         self.isAlive = False
-
-    def play(self):
-        if self.isAlive:
-            steer_eat = self.eat()
-            steer_avoid = self.avoid()
-
-            steer_eat = self.vector_mul(steer_eat, self.dna.dna[0])
-            steer_avoid = self.vector_mul(steer_avoid, self.dna.dna[1])
-
-            self.apply_force(steer_eat)
-            self.apply_force(steer_avoid)
-            self.update()
+        if self.food_eaten == 0:
+            self.score = -50
 
     def eat(self):
         food_idx = self.get_closest_food()
