@@ -3,6 +3,7 @@ import numpy as np
 from graphics import *
 from dna import *
 
+
 class Robot(object):
     def __init__(self, start_pos, foods, obstacles, gui_win, map_limits):
         self.position = start_pos  # position to create robot, [x, y]
@@ -17,7 +18,6 @@ class Robot(object):
         self.gui_w = 20
 
         self.velocity = [0, 0]
-        self.max_velocity = 15
 
         self.acceleration = [0, 0]
 
@@ -29,8 +29,9 @@ class Robot(object):
         self.isAlive = True
 
         self.dna = DNA()
-        print(self.dna.desire_to_eat)
-        print(self.dna.desire_to_die)
+        self.dna.print()
+
+        self.max_velocity = self.dna.dna[5]
 
         self.create_gui()
 
@@ -39,9 +40,9 @@ class Robot(object):
         a, b = self.direction[0], self.direction[1]
         h, w = self.gui_h, self.gui_w
 
-        vertices = [Point(x + a * h/2, y + b * h/2),
-                    Point(x - a * h/2 + b * w/2, y - b * h/2 - a * w/2),
-                    Point(x - a * h/2 - b * w/2, y - b * h/2 + a * w/2)]
+        vertices = [Point(x + a * h / 2, y + b * h / 2),
+                    Point(x - a * h / 2 + b * w / 2, y - b * h / 2 - a * w / 2),
+                    Point(x - a * h / 2 - b * w / 2, y - b * h / 2 + a * w / 2)]
 
         self.gui = Polygon(vertices)
         if self.isAlive:
@@ -62,23 +63,18 @@ class Robot(object):
         self.velocity[0] += self.acceleration[0]
         self.velocity[1] += self.acceleration[1]
 
-        if self.velocity[0] > self.max_velocity:
-            self.velocity[0] = self.max_velocity
-        if self.velocity[1] > self.max_velocity:
-            self.velocity[1] = self.max_velocity
+        self.velocity[0] = max(-self.max_velocity, min(self.velocity[0], self.max_velocity))
+        self.velocity[1] = max(-self.max_velocity, min(self.velocity[1], self.max_velocity))
+
+        # print(self.velocity)
+        self.set_direction(self.to_unit_vector(self.velocity))
 
         self.position[0] += self.velocity[0]
         self.position[1] += self.velocity[1]
 
         # Limit pos in borders
-        if self.position[0] < self.map_limits[0]:
-            self.position[0] = self.map_limits[0]
-        if self.position[1] < self.map_limits[0]:
-            self.position[1] = self.map_limits[0]
-        if self.position[0] > self.map_limits[1]:
-            self.position[0] = self.map_limits[1]
-        if self.position[1] > self.map_limits[1]:
-            self.position[1] = self.map_limits[1]
+        self.position[0] = max(self.map_limits[0], min(self.position[0], self.map_limits[1]))
+        self.position[1] = max(self.map_limits[0], min(self.position[1], self.map_limits[1]))
 
         self.update_gui()
 
@@ -100,7 +96,7 @@ class Robot(object):
         min_dist = 3000
         min_idx = -1
         for i in range(len(distances)):
-            if distances[i] < min_dist:
+            if distances[i] < min_dist and distances[i] < self.dna.dna[2]:
                 min_dist = distances[i]
                 min_idx = i
 
@@ -125,7 +121,7 @@ class Robot(object):
         min_dist = 3000
         min_idx = -1
         for i in range(len(distances)):
-            if distances[i] < min_dist:
+            if distances[i] < min_dist and distances[i] < self.dna.dna[3]:
                 min_dist = distances[i]
                 min_idx = i
 
@@ -138,40 +134,42 @@ class Robot(object):
     def die(self):
         self.isAlive = False
 
-    def seek(self):
+    def play(self):
         if self.isAlive:
-            # Go to food
-            target = self.foods[self.get_closest_food()]
-            food_direction_unit = self.to_unit_vector([target.position[0] - self.position[0],
-                                                       target.position[1] - self.position[1]])
-            food_direction = [food_direction_unit[0] * self.max_velocity,
-                              food_direction_unit[1] * self.max_velocity]
-            steer_to_eat = self.to_unit_vector([food_direction[0] - self.velocity[0],
-                                                food_direction[1] - self.velocity[1]])
+            steer_eat = self.eat()
+            steer_avoid = self.avoid()
 
-            # Avoid obstacles
-            avoid = self.obstacles[self.get_closest_obstacle()]
-            obstacle_direction_unit = self.to_unit_vector([avoid.position[0] - self.position[0],
-                                                           avoid.position[1] - self.position[1]])
-            obstacle_direction = [obstacle_direction_unit[0] * self.max_velocity,
-                                  obstacle_direction_unit[1] * self.max_velocity]
-            steer_to_live = self.to_unit_vector([obstacle_direction[0] - self.velocity[0],
-                                                 obstacle_direction[1] - self.velocity[1]])
+            steer_eat = self.vector_mul(steer_eat, self.dna.dna[0])
+            steer_avoid = self.vector_mul(steer_avoid, self.dna.dna[1])
 
-            # final_steer = [steer_to_eat[0] * self.dna.desire_to_eat + steer_to_live[0] * self.dna.desire_to_survive,
-            #                steer_to_eat[1] * self.dna.desire_to_eat + steer_to_live[1] * self.dna.desire_to_survive]
-
-            steer_to_eat = [steer_to_eat[0] * self.dna.desire_to_eat,
-                            steer_to_eat[1] * self.dna.desire_to_eat]
-
-            steer_to_live = [steer_to_live[0] * self.dna.desire_to_die,
-                             steer_to_live[1] * self.dna.desire_to_die]
-
-            self.apply_force(steer_to_eat)
-            self.apply_force(steer_to_live)
+            self.apply_force(steer_eat)
+            self.apply_force(steer_avoid)
             self.update()
 
-            self.set_direction(self.to_unit_vector(self.velocity))
+    def eat(self):
+        food_idx = self.get_closest_food()
+        if food_idx == -1:
+            # No food left
+            return [0, 0]
+
+        food_pos = self.foods[food_idx].position
+        return self.get_steer(food_pos)
+
+    def avoid(self):
+        obstacle_idx = self.get_closest_obstacle()
+        if obstacle_idx == -1:
+            return [0, 0]
+
+        obstacle_pos = self.obstacles[obstacle_idx].position
+        return self.get_steer(obstacle_pos)
+
+    def get_steer(self, pos):
+        vector_to_object = self.vector_sub(pos, self.position)
+
+        steer = self.to_unit_vector(self.vector_sub(vector_to_object, self.velocity))
+        steer = self.vector_mul(steer, self.dna.dna[4])
+
+        return steer
 
     @staticmethod
     def to_unit_vector(vector):
@@ -183,7 +181,10 @@ class Robot(object):
 
         return unit_vector
 
+    @staticmethod
+    def vector_mul(vector, mag):
+        return [vector[0] * mag, vector[1] * mag]
 
-
-
-
+    @staticmethod
+    def vector_sub(vector1, vector2):
+        return [vector1[0] - vector2[0], vector1[1] - vector2[1]]

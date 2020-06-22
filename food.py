@@ -20,4 +20,3 @@ class Food(object):
     def eat(self):
         self.is_alive = False
         self.gui.undraw()
-
