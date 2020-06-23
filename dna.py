@@ -14,15 +14,24 @@ class DNA(object):
 
         # All of them in a list
         self.dna = []
+        self.gen_ranges = [
+            [-2.5, 2.5],
+            [-2.5, 2.5],
+            [50, 1000],
+            [50, 1000],
+            [0, 2],
+            [0, 20]
+        ]
+
         self.randomize()
 
     def randomize(self):
-        self.dna.append(random() * 5 - 2.5)    # 0 desire_to_eat [-2.5, 2.5]
-        self.dna.append(random() * 5 - 2.5)    # 1 desire_to_die [-2.5, 2.5]
-        self.dna.append(randint(50, 1000))      # 2 food_view_distance [50, 1000]
-        self.dna.append(randint(50, 1000))      # 3 obstacle_view_distance [50, 1000]
-        self.dna.append(random() * 1)          # 4 max_force [0, 2]
-        self.dna.append(random() * 20)         # 5 max_velocity [0, 20]
+        self.dna.append(random() * self.gen_ranges[0][1] * 2 - self.gen_ranges[0][1])       # 0 desire_to_eat
+        self.dna.append(random() * self.gen_ranges[1][1] * 2 - self.gen_ranges[1][1])       # 1 desire_to_die
+        self.dna.append(randint(self.gen_ranges[2][0], self.gen_ranges[2][1]))              # 2 food_view_distance
+        self.dna.append(randint(self.gen_ranges[3][0], self.gen_ranges[3][1]))              # 3 obstacle_view_distance
+        self.dna.append(random() * self.gen_ranges[4][1])                                   # 4 max_force
+        self.dna.append(random() * self.gen_ranges[5][1])                                   # 5 max_velocity
 
     def print(self):
         print("desire_to_eat {}".format(self.dna[0]))

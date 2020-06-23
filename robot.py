@@ -29,19 +29,16 @@ class Robot(object):
         self.isAlive = True
 
         self.dna = DNA()
-        self.dna.print()
+        # self.dna.print()
 
         self.score = 0
 
-        # Ways to score
-        self.age_score = 1
-        self.food_score = 25
-        self.die_score = -25
+        self.base_score = 0.1
+        self.food_score = 2
+        self.hungry_time = 0
 
-        self.time_hungry = 0
-        self.die_from_hunger = 500
-
-        self.food_eaten = 0
+        self.total_base_score = 0
+        self.total_food_score = 0
 
         self.max_velocity = self.dna.dna[5]
 
@@ -63,7 +60,8 @@ class Robot(object):
             self.gui.setFill(self.gui_dead_color)
         self.gui.draw(self.gui_win)
 
-        self.score_text = Text(Point(self.position[0], self.position[1]), "{}".format(self.score))
+        self.score_text = Text(Point(self.position[0], self.position[1]), "{:.1f}".format(self.score))
+        self.score_text.setTextColor(color_rgb(255, 255, 255))
         self.score_text.draw(self.gui_win)
 
     def set_direction(self, new_direction):
@@ -75,17 +73,12 @@ class Robot(object):
         self.score_text.undraw()
         self.create_gui()
 
+    def remove_gui(self):
+        self.gui.undraw()
+        self.score_text.undraw()
+
     def play(self):
         if self.isAlive:
-            self.score += self.age_score
-            self.time_hungry += 1
-
-            if self.time_hungry > 50:
-                self.score = 0
-            if self.time_hungry > self.die_from_hunger:
-                self.score -= self.die_score
-                self.die()
-
             steer_eat = self.eat()
             steer_avoid = self.avoid()
 
@@ -95,6 +88,13 @@ class Robot(object):
             self.apply_force(steer_eat)
             self.apply_force(steer_avoid)
             self.update()
+
+            self.total_base_score += self.base_score
+            self.score = self.total_base_score + self.total_food_score ** 2
+
+            self.hungry_time += self.base_score
+            if self.hungry_time > 30:
+                self.die()
 
     def update(self):
         self.velocity[0] += self.acceleration[0]
@@ -149,9 +149,8 @@ class Robot(object):
         self.foods[food_idx] = self.foods[-1]
         del self.foods[-1]
 
-        self.score += self.food_score
-        self.time_hungry = 0
-        self.food_eaten += 1
+        self.total_food_score += self.food_score
+        self.hungry_time = 0
 
     def get_closest_obstacle(self):
         distances = []
@@ -173,10 +172,9 @@ class Robot(object):
         return min_idx
 
     def die(self):
-        self.score += self.die_score
+        self.score = self.total_base_score + self.total_food_score ** 2
         self.isAlive = False
-        if self.food_eaten == 0:
-            self.score = -50
+        self.update_gui()
 
     def eat(self):
         food_idx = self.get_closest_food()

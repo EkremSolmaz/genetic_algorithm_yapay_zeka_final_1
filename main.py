@@ -2,6 +2,7 @@ from graphics import *
 from robot import *
 from food import *
 from obstacle import *
+from population import *
 
 from random import randint
 
@@ -24,7 +25,7 @@ rect.setOutline('red')
 rect.draw(win)
 
 # Food
-food_number = 20
+food_number = 40
 foods = []
 for i in range(food_number):
     foods.append(Food([randint(border_size, win_size-border_size), randint(border_size, win_size-border_size)], win))
@@ -48,39 +49,38 @@ for i in range((y - x) // (3 * r)):
 
 
 # Robot
-robot_number = 10
+robot_number = 20
 robots = []
 map_limits = [border_size, win_size-border_size]
 # r = Robot([400, 400], foods, obstacles, win, map_limits)
+
+# Population
+population = Population(robots)
 
 alive_robots = 0
 for i in range(robot_number):
     robots.append(Robot([400, 400], foods, obstacles, win, map_limits))
     alive_robots += 1
 
-while alive_robots > 0:
-    sleep((len(robots) / alive_robots) * 0.002)  # Slow sim if less robots on
+while True:
+    while alive_robots > 0:
+        sleep((len(robots) / alive_robots) * 0.002)  # Slow sim if less robots on
 
-    alive_robots = 0
+        alive_robots = 0
+        for i in range(robot_number):
+            robots[i].play()
+            if robots[i].isAlive:
+                alive_robots += 1
+
+        if len(foods) < food_number:
+            foods.append(
+                Food([randint(border_size, win_size - border_size), randint(border_size, win_size - border_size)], win))
+
+    robots = population.create_new_gen()
     for i in range(robot_number):
-        robots[i].play()
         if robots[i].isAlive:
             alive_robots += 1
 
-    if len(foods) < food_number:
-        foods.append(
-            Food([randint(border_size, win_size - border_size), randint(border_size, win_size - border_size)], win))
+    win.getMouse()
 
-
-    # keyName = win.getKey()
-    # if keyName == "Return":
-    #     win.close()
-    # elif keyName == "a":
-    #     r.set_direction([-0.6, 0.8])
-    # elif keyName == "s":
-    #     r.set_direction([-0.8, -0.6])
-    # elif keyName == "d":
-    #     r.set_direction([1, 0])
-
-win.getMouse()
 win.close()
