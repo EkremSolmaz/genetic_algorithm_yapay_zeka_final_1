@@ -31,7 +31,7 @@ for i in range(food_number):
     foods.append(Food([randint(border_size, win_size-border_size), randint(border_size, win_size-border_size)], win))
 
 # Obstacle
-obstacle_number = 10
+obstacle_number = 20
 obstacles = []
 for i in range(obstacle_number):
     obstacles.append(Obstacle([randint(border_size, win_size-border_size),
