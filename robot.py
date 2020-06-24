@@ -5,7 +5,7 @@ from dna import *
 
 
 class Robot(object):
-    def __init__(self, start_pos, foods, obstacles, gui_win, map_limits):
+    def __init__(self, start_pos, foods, obstacles, gui_win, map_limits, simulate):
         self.position = start_pos  # position to create robot, [x, y]
         self.foods = foods  # list of foods to collect [obj, ..., obj]
         self.obstacles = obstacles  # list of obstacles to avoid [obj, ..., obj]
@@ -23,18 +23,17 @@ class Robot(object):
 
         self.direction = [0, -1]  # Always unit vector
 
-        self.eat_distance = 10
+        self.eat_distance = 15
         self.die_distance = 20
 
         self.isAlive = True
 
         self.dna = DNA()
-        # self.dna.print()
 
         self.score = 0
 
         self.base_score = 0.1
-        self.food_score = 2
+        self.food_score = 20
         self.hungry_time = 0
 
         self.total_base_score = 0
@@ -42,7 +41,13 @@ class Robot(object):
 
         self.max_velocity = self.dna.dna[5]
 
-        self.create_gui()
+        self.simulate = simulate  # boolean, if True then simulate in graphics
+
+        self.gui = Polygon([])
+        self.score_text = Text(Point(0, 0), "")
+
+        if self.simulate:
+            self.create_gui()
 
     def create_gui(self):
         x, y = self.position[0], self.position[1]
@@ -69,9 +74,10 @@ class Robot(object):
         self.update_gui()
 
     def update_gui(self):
-        self.gui.undraw()
-        self.score_text.undraw()
-        self.create_gui()
+        if self.simulate:
+            self.gui.undraw()
+            self.score_text.undraw()
+            self.create_gui()
 
     def remove_gui(self):
         self.gui.undraw()
@@ -90,7 +96,7 @@ class Robot(object):
             self.update()
 
             self.total_base_score += self.base_score
-            self.score = self.total_base_score + self.total_food_score ** 2
+            self.score = self.total_base_score + self.total_food_score
 
             self.hungry_time += self.base_score
             if self.hungry_time > 30:
@@ -172,7 +178,7 @@ class Robot(object):
         return min_idx
 
     def die(self):
-        self.score = self.total_base_score + self.total_food_score ** 2
+        self.score = self.total_base_score + self.total_food_score
         self.isAlive = False
         self.update_gui()
 
