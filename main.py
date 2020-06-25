@@ -5,7 +5,6 @@ from obstacle import *
 from population import *
 
 from random import randint
-import matplotlib.pyplot as plt
 from time import sleep, time
 
 win_size = 800
@@ -58,7 +57,7 @@ map_limits = [border_size, win_size-border_size]
 # Population
 population = Population(robots)
 
-skip_gen = 100
+skip_gen = 50
 best_ofs = []
 avgs = []
 
@@ -124,9 +123,6 @@ while population.generation_cnt < skip_gen:  # dont simulate first n generation
     elapsed_time = end_time - start_time
     print("Elapsed Time : {}".format(elapsed_time))
     print("----------------------------------------------------------------------")
-    plt.plot(best_ofs)
-    plt.plot(avgs)
-    plt.show()
 
 
 for food in foods:
@@ -179,9 +175,5 @@ while True:
     elapsed_time = end_time - start_time
     print("Elapsed Time : {}".format(elapsed_time))
     print("----------------------------------------------------------------------")
-    plt.plot(best_ofs)
-    plt.plot(avgs)
-    plt.show()
-
 
 # win.close()

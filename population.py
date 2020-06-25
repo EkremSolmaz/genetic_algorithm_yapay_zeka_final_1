@@ -10,7 +10,7 @@ class Population(object):
     def __init__(self, robots):
         self.robots = robots
 
-        self.mutation_rate = 0.02
+        self.mutation_rate = 0.03
 
         self.generation_cnt = 0
 
@@ -58,6 +58,7 @@ class Population(object):
 
         self.avg_parent_score /= 2 * len(self.robots)
         self.generation_cnt += 1
+
         self.robots = new_gen_robots
         print("Generation {} has been created".format(self.generation_cnt))
         print("Average parent score: {}".format(self.avg_parent_score))
@@ -75,7 +76,7 @@ class Population(object):
 
         # mutation
         for i in range(len(child.dna.dna)):
-            child.dna.dna[i] = (mother.dna.dna[i] + father.dna.dna[i]) / 2
+            child.dna.dna[i] = mother.dna.dna[i] if random() < 0.5 else father.dna.dna[i]
             if random() < self.mutation_rate:
                 a = child.dna.gen_ranges[i][0]
                 b = child.dna.gen_ranges[i][1]

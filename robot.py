@@ -96,7 +96,7 @@ class Robot(object):
             self.update()
 
             self.total_base_score += self.base_score
-            self.score = self.total_base_score + self.total_food_score
+            self.score = np.sqrt(self.total_base_score + self.total_food_score)
 
             self.hungry_time += self.base_score
             if self.hungry_time > 30:
@@ -178,7 +178,7 @@ class Robot(object):
         return min_idx
 
     def die(self):
-        self.score = self.total_base_score + self.total_food_score
+        self.score = np.sqrt(self.total_base_score + self.total_food_score)
         self.isAlive = False
         self.update_gui()
 
